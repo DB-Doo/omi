@@ -221,3 +221,6 @@ app/macos/Runner/LocalDev.entitlements
 builds-snapshot.md
 *-snapshot.md
 .gstack/
+
+# Local secrets (set FIREBASE_API_KEY env var instead)
+linux-app/config.py
