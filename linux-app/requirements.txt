@@ -1,0 +1,10 @@
+pytesseract
+pillow
+requests
+pystray
+pywebview
+fastapi
+uvicorn[standard]
+PyQt5
+PyQtWebEngine
+qtpy

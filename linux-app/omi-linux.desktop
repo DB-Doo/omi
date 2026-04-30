@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Omi Linux
+Comment=Always-on AI screen-context companion
+Exec=/home/dan/omi/linux-app/start.sh
+Icon=/home/dan/omi/linux-app/icon.png
+Type=Application
+Categories=Utility;
+StartupNotify=false

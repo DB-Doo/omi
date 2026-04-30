@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Omi Linux</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0d0d;
+      color: #e8e8e8;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid #1f1f1f;
+      background: #111;
+      flex-shrink: 0;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .omi-dot {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #FF6B35;
+      flex-shrink: 0;
+    }
+    .app-title { font-weight: 600; font-size: 15px; letter-spacing: -0.3px; }
+    .header-open-btn {
+      background: none;
+      border: 1px solid #333;
+      color: #aaa;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .header-open-btn:hover { border-color: #FF6B35; color: #FF6B35; }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #141414;
+      border-bottom: 1px solid #1a1a1a;
+      flex-shrink: 0;
+    }
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #4caf50;
+      animation: pulse 2s infinite;
+    }
+    .status-dot.paused { background: #888; animation: none; }
+    .status-dot.error { background: #f44336; animation: none; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .status-text { color: #ccc; }
+    .status-text.paused { color: #888; }
+    .sync-info { font-size: 11px; color: #555; }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #555;
+      padding: 12px 16px 6px;
+      flex-shrink: 0;
+    }
+
+    .capture-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 10px 10px;
+    }
+    .capture-list::-webkit-scrollbar { width: 4px; }
+    .capture-list::-webkit-scrollbar-track { background: transparent; }
+    .capture-list::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+    .capture-card {
+      background: #161616;
+      border: 1px solid #1f1f1f;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .capture-card:hover { border-color: #2a2a2a; }
+
+    .capture-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+    .capture-time { font-size: 11px; color: #555; flex-shrink: 0; }
+    .capture-app {
+      font-size: 12px;
+      font-weight: 600;
+      color: #FF6B35;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .capture-title {
+      font-size: 12px;
+      color: #bbb;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .capture-text {
+      font-size: 11px;
+      color: #666;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #444;
+    }
+    .empty-icon { font-size: 32px; margin-bottom: 10px; }
+    .empty-msg { font-size: 13px; }
+
+    .footer {
+      display: flex;
+      gap: 8px;
+      padding: 10px 16px 14px;
+      border-top: 1px solid #1a1a1a;
+      background: #111;
+      flex-shrink: 0;
+    }
+    .btn {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-secondary {
+      background: #1f1f1f;
+      color: #ccc;
+      border: 1px solid #2a2a2a;
+    }
+    .btn-primary { background: #FF6B35; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-left">
+      <div class="omi-dot"></div>
+      <span class="app-title">Omi Linux</span>
+    </div>
+    <button class="header-open-btn" id="open-btn">Open Omi App ↗</button>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-pill">
+      <div class="status-dot" id="status-dot"></div>
+      <span class="status-text" id="status-text">Capturing</span>
+    </div>
+    <span class="sync-info" id="sync-info">Waiting for first sync…</span>
+  </div>
+
+  <div class="section-label">Recent Screen Activity</div>
+
+  <div class="capture-list" id="capture-list"></div>
+
+  <div class="footer">
+    <button class="btn btn-secondary" id="pause-btn">Pause</button>
+    <button class="btn btn-primary" id="omi-btn">Open Omi App</button>
+  </div>
+
+  <script>
+    document.getElementById('open-btn').addEventListener('click', openOmiApp);
+    document.getElementById('omi-btn').addEventListener('click', openOmiApp);
+    document.getElementById('pause-btn').addEventListener('click', togglePause);
+
+    function openOmiApp() {
+      window.open('https://app.omi.me', '_blank');
+    }
+
+    function formatTime(isoStr) {
+      if (!isoStr) return '';
+      try {
+        return new Date(isoStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } catch (e) { return ''; }
+    }
+
+    function timeSince(isoStr) {
+      if (!isoStr) return null;
+      const sec = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
+      if (sec < 60) return sec + 's ago';
+      if (sec < 3600) return Math.floor(sec / 60) + 'm ago';
+      return Math.floor(sec / 3600) + 'h ago';
+    }
+
+    function makeCard(c) {
+      const card = document.createElement('div');
+      card.className = 'capture-card';
+
+      const meta = document.createElement('div');
+      meta.className = 'capture-meta';
+
+      const time = document.createElement('span');
+      time.className = 'capture-time';
+      time.textContent = formatTime(c.ts);
+
+      const app = document.createElement('span');
+      app.className = 'capture-app';
+      app.textContent = c.app || 'Unknown';
+
+      meta.appendChild(time);
+      meta.appendChild(app);
+      card.appendChild(meta);
+
+      if (c.title) {
+        const title = document.createElement('div');
+        title.className = 'capture-title';
+        title.textContent = c.title;
+        card.appendChild(title);
+      }
+
+      if (c.text) {
+        const text = document.createElement('div');
+        text.className = 'capture-text';
+        text.textContent = c.text;
+        card.appendChild(text);
+      }
+
+      return card;
+    }
+
+    function renderCaptures(list) {
+      const el = document.getElementById('capture-list');
+      while (el.firstChild) el.removeChild(el.firstChild);
+
+      if (!list || list.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+
+        const icon = document.createElement('div');
+        icon.className = 'empty-icon';
+        icon.textContent = '🖥️';
+
+        const msg = document.createElement('p');
+        msg.className = 'empty-msg';
+        msg.textContent = 'No captures yet. Waiting for first screenshot…';
+
+        empty.appendChild(icon);
+        empty.appendChild(msg);
+        el.appendChild(empty);
+        return;
+      }
+
+      list.forEach(function(c) { el.appendChild(makeCard(c)); });
+    }
+
+    async function refresh() {
+      try {
+        const r = await fetch('/api/state');
+        const data = await r.json();
+
+        const dot = document.getElementById('status-dot');
+        const txt = document.getElementById('status-text');
+        const syncEl = document.getElementById('sync-info');
+        const pauseBtn = document.getElementById('pause-btn');
+
+        if (!data.running) {
+          dot.className = 'status-dot error';
+          txt.textContent = 'Stopped';
+          txt.className = 'status-text paused';
+        } else if (data.paused) {
+          dot.className = 'status-dot paused';
+          txt.textContent = 'Paused';
+          txt.className = 'status-text paused';
+          pauseBtn.textContent = 'Resume';
+        } else {
+          dot.className = 'status-dot';
+          txt.textContent = 'Capturing · ' + data.count + ' total';
+          txt.className = 'status-text';
+          pauseBtn.textContent = 'Pause';
+        }
+
+        const since = timeSince(data.last_sync);
+        syncEl.textContent = since ? 'Last sync: ' + since : 'Not yet synced';
+
+        renderCaptures(data.recent);
+      } catch (e) {
+        console.error('State fetch failed:', e);
+      }
+    }
+
+    async function togglePause() {
+      await fetch('/api/pause', { method: 'POST' });
+      await refresh();
+    }
+
+    renderCaptures([]);
+    refresh();
+    setInterval(refresh, 10000);
+  </script>
+</body>
+</html>
